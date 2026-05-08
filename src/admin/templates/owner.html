@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+{% set active = "owner" %}
+{% block title %}{{ t('owner.title') }}{% endblock %}
+{% block content %}
+<h1>{{ t('owner.title') }}</h1>
+<p class="lede">{{ t('owner.lede') }}</p>
+
+<div class="card">
+  <p style="margin-top: 0;">
+    {{ t('owner.current') }}:
+    {% if owner_chat_id %}<code>{{ owner_chat_id }}</code>{% else %}<em>{{ t('owner.not_set') }}</em>{% endif %}
+  </p>
+
+  <form class="add" method="post" action="/owner/set" style="margin-top: .5rem;">
+    <div style="grid-column: span 2;">
+      <label>{{ t('leads.col.chat_id') }}</label>
+      <input type="number" name="telegram_chat_id" value="{{ owner_chat_id or '' }}" required>
+    </div>
+    <div><button type="submit">{{ t('common.save') }}</button></div>
+  </form>
+</div>
+{% endblock %}

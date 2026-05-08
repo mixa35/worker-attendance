@@ -1,0 +1,45 @@
+{% extends "base.html" %}
+{% set active = "index" %}
+{% block title %}{{ t('dash.title') }}{% endblock %}
+{% block content %}
+<h1>{{ t('dash.title') }}</h1>
+<p class="lede">{{ t('dash.lede') }}</p>
+
+<div class="stats">
+  <div class="stat"><div class="num">{{ teams_count }}</div><div class="label">{{ t('dash.stat.teams') }}</div></div>
+  <div class="stat"><div class="num">{{ workers_active }}</div><div class="label">{{ t('dash.stat.active_workers') }}</div></div>
+  <div class="stat"><div class="num">{{ workers_total }}</div><div class="label">{{ t('dash.stat.total_workers') }}</div></div>
+  <div class="stat"><div class="num">{{ leads_count }}</div><div class="label">{{ t('dash.stat.leads') }}</div></div>
+</div>
+
+<div class="card">
+  <h3 style="margin-top:0;">{{ t('dash.owner.title') }}</h3>
+  <p style="margin:.25rem 0;">
+    {% if owner_chat_id %}
+      {{ t('dash.owner.chat_id') }}: <code>{{ owner_chat_id }}</code>
+    {% else %}
+      <em>{{ t('dash.owner.none') }}</em>
+    {% endif %}
+    &nbsp; <a href="/owner">{{ t('dash.owner.edit') }}</a>
+  </p>
+</div>
+
+<div class="card">
+  <h3 style="margin-top:0;">{{ t('dash.excel.title') }}</h3>
+  {% if xlsx_exists %}
+    <p style="margin:.25rem 0;">{{ t('dash.excel.desc') }}</p>
+    <a href="/download" class="btn">⤓ {{ t('dash.excel.download') }}</a>
+  {% else %}
+    <p style="margin:.25rem 0;"><em>{{ t('dash.excel.empty') }}</em></p>
+  {% endif %}
+</div>
+
+<div class="card">
+  <h3 style="margin-top:0;">{{ t('dash.quick.title') }}</h3>
+  <ul style="margin:.25rem 0; padding-left: 1.2rem;">
+    <li><a href="/teams">{{ t('dash.quick.teams') }}</a></li>
+    <li><a href="/workers">{{ t('dash.quick.workers') }}</a></li>
+    <li><a href="/leads">{{ t('dash.quick.leads') }}</a></li>
+  </ul>
+</div>
+{% endblock %}

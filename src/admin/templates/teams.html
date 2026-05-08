@@ -1,0 +1,81 @@
+{% extends "base.html" %}
+{% set active = "teams" %}
+{% block title %}{{ t('teams.title') }}{% endblock %}
+{% block content %}
+<h1>{{ t('teams.title') }}</h1>
+<p class="lede">{{ t('teams.lede') }}</p>
+
+<table>
+  <thead>
+    <tr>
+      <th style="width: 40px;">{{ t('teams.col.color') }}</th>
+      <th>{{ t('common.name') }}</th>
+      <th>{{ t('teams.col.active_workers') }}</th>
+      <th class="actions"></th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for tm in teams %}
+    <tr id="team-row-{{ tm.id }}">
+      <td><span class="swatch" style="background: #{{ tm.color_hex }}"></span></td>
+      <td><strong>{{ tm.name }}</strong></td>
+      <td>{{ tm.active_count }}</td>
+      <td class="actions">
+        <button type="button" class="ghost sm" onclick="toggleEdit({{ tm.id }})">{{ t('common.edit') }}</button>
+        <form class="inline" method="post" action="/teams/{{ tm.id }}/delete"
+              onsubmit="return confirm('{{ t('teams.confirm_delete', name=tm.name)|e }}');">
+          <button class="danger sm" type="submit">{{ t('common.delete') }}</button>
+        </form>
+      </td>
+    </tr>
+    <tr id="team-edit-{{ tm.id }}" style="display: none;">
+      <td colspan="4" style="background: #fafbfd;">
+        <form class="row-edit" method="post" action="/teams/{{ tm.id }}/edit">
+          <div>
+            <label>{{ t('common.name') }}</label>
+            <input type="text" name="name" value="{{ tm.name }}" required>
+          </div>
+          <div>
+            <label>{{ t('common.color') }}</label>
+            <input type="color" name="color_hex" value="#{{ tm.color_hex }}">
+          </div>
+          <div style="display: flex; gap: .5rem;">
+            <button type="submit">{{ t('common.save') }}</button>
+            <button type="button" class="muted" onclick="toggleEdit({{ tm.id }})">{{ t('common.cancel') }}</button>
+          </div>
+        </form>
+      </td>
+    </tr>
+    {% endfor %}
+    {% if not teams %}
+    <tr><td colspan="4"><em>{{ t('teams.empty') }}</em></td></tr>
+    {% endif %}
+  </tbody>
+</table>
+
+<h2>{{ t('teams.add_title') }}</h2>
+<form class="add" method="post" action="/teams/add">
+  <div>
+    <label>{{ t('common.name') }}</label>
+    <input type="text" name="name" required placeholder="{{ t('teams.placeholder.name') }}">
+  </div>
+  <div>
+    <label>{{ t('common.color') }}</label>
+    <input type="color" name="color_hex" value="#34d399">
+  </div>
+  <div>
+    <button type="submit">{{ t('teams.add_button') }}</button>
+  </div>
+</form>
+{% endblock %}
+
+{% block scripts %}
+<script>
+function toggleEdit(id) {
+  const row = document.getElementById('team-row-' + id);
+  const edit = document.getElementById('team-edit-' + id);
+  if (edit.style.display === 'none') { edit.style.display = ''; row.style.opacity = .5; }
+  else { edit.style.display = 'none'; row.style.opacity = 1; }
+}
+</script>
+{% endblock %}

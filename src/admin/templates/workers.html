@@ -1,0 +1,149 @@
+{% extends "base.html" %}
+{% set active = "workers" %}
+{% block title %}{{ t('workers.title') }}{% endblock %}
+{% block content %}
+<h1>{{ t('workers.title') }}</h1>
+<p class="lede">{{ t('workers.lede') }}</p>
+<div class="info-note">
+  <strong>{{ t('workers.tip_label') }}</strong> {{ t('workers.tip') }}
+</div>
+
+{% for team in teams %}
+  {% set actives = workers_by_team[team.id] | selectattr('active') | list %}
+  {% set inactives = workers_by_team[team.id] | rejectattr('active') | list %}
+  <div class="row-team-section">
+    <h2>
+      <span class="swatch" style="background: #{{ team.color_hex }}"></span>{{ team.name }}
+      <span class="team-chip">{{ t('workers.chip.active', n=actives|length) }}</span>
+    </h2>
+
+    <table class="workers-table" data-team-id="{{ team.id }}">
+      <colgroup>
+        <col style="width: 36px;">
+        <col style="width: 32%;">
+        <col style="width: 26%;">
+        <col>
+      </colgroup>
+      <thead>
+        <tr>
+          <th></th>
+          <th>{{ t('common.name') }}</th>
+          <th>{{ t('workers.col.national_id') }}</th>
+          <th class="actions"></th>
+        </tr>
+      </thead>
+      <tbody data-sortable="1" data-team-id="{{ team.id }}">
+        {% for w in actives %}
+        <tr class="draggable" data-worker-id="{{ w.id }}">
+          <td class="drag-handle" style="color: var(--text-mute); font-size: 1.1rem; cursor: grab; text-align: center;">⋮⋮</td>
+          <td><strong>{{ w.name }}</strong></td>
+          <td>{{ w.national_id or t('common.none_dash') }}</td>
+          <td class="actions">
+            <form class="inline" method="post" action="/workers/{{ w.id }}/deactivate">
+              <button class="muted sm" type="submit" title="{{ t('workers.btn.deactivate_title') }}">{{ t('workers.btn.deactivate') }}</button>
+            </form>
+            <form class="inline" method="post" action="/workers/{{ w.id }}/delete"
+                  onsubmit="return confirm('{{ t('workers.confirm_delete', name=w.name)|e }}');">
+              <button class="danger sm" type="submit">{{ t('workers.btn.delete') }}</button>
+            </form>
+          </td>
+        </tr>
+        {% endfor %}
+        {% if not actives %}
+        <tr><td colspan="4" style="color: var(--text-mute);"><em>{{ t('workers.empty_active') }}</em></td></tr>
+        {% endif %}
+      </tbody>
+    </table>
+
+    {% if inactives %}
+    <details class="archived">
+      <summary>{{ t('workers.archived') }} ({{ inactives | length }})</summary>
+      <table class="workers-table">
+        <colgroup>
+          <col style="width: 36px;">
+          <col style="width: 32%;">
+          <col style="width: 26%;">
+          <col>
+        </colgroup>
+        <tbody>
+          {% for w in inactives %}
+          <tr>
+            <td style="width: 24px;"></td>
+            <td><span class="badge-inactive">{{ w.name }}</span></td>
+            <td><span class="badge-inactive">{{ w.national_id or t('common.none_dash') }}</span></td>
+            <td class="actions">
+              <form class="inline" method="post" action="/workers/{{ w.id }}/activate">
+                <button class="ghost sm" type="submit">{{ t('workers.btn.reactivate') }}</button>
+              </form>
+              <form class="inline" method="post" action="/workers/{{ w.id }}/delete"
+                    onsubmit="return confirm('{{ t('workers.confirm_delete_archived', name=w.name)|e }}');">
+                <button class="danger sm" type="submit">{{ t('workers.btn.delete') }}</button>
+              </form>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </details>
+    {% endif %}
+  </div>
+{% endfor %}
+
+{% if not teams %}<p><em>{{ t('workers.create_team_first') }}</em></p>{% endif %}
+
+{% if teams %}
+<h2>{{ t('workers.add_title') }}</h2>
+<form class="add" method="post" action="/workers/add">
+  <div>
+    <label>{{ t('common.team') }}</label>
+    <select name="team_id" required>
+      {% for tm in teams %}<option value="{{ tm.id }}">{{ tm.name }}</option>{% endfor %}
+    </select>
+  </div>
+  <div>
+    <label>{{ t('common.name') }}</label>
+    <input type="text" name="name" required placeholder="{{ t('workers.placeholder.name') }}">
+  </div>
+  <div>
+    <label>{{ t('workers.col.national_id') }} ({{ t('common.optional') }})</label>
+    <input type="text" name="national_id" placeholder="{{ t('workers.placeholder.national_id') }}">
+  </div>
+  <div><button type="submit">{{ t('common.add') }}</button></div>
+</form>
+{% endif %}
+{% endblock %}
+
+{% block scripts %}
+<script src="/static/Sortable.min.js"></script>
+<script>
+document.querySelectorAll('tbody[data-sortable]').forEach(tbody => {
+  Sortable.create(tbody, {
+    group: 'workers',
+    animation: 150,
+    handle: '.drag-handle',
+    draggable: 'tr.draggable',
+    ghostClass: 'sortable-ghost',
+    chosenClass: 'sortable-chosen',
+    onAdd: function(evt) {
+      const workerId = evt.item.dataset.workerId;
+      const targetTeamId = evt.to.dataset.teamId;
+      const formData = new FormData();
+      formData.append('team_id', targetTeamId);
+      fetch('/workers/' + workerId + '/move', {
+        method: 'POST', body: formData, redirect: 'manual'
+      }).then(r => {
+        // 303 redirect == success path; opaque "type" because of redirect:manual
+        if (!r.ok && r.type !== 'opaqueredirect') {
+          alert('Move failed (HTTP ' + r.status + '). Reloading.');
+          window.location.reload();
+        }
+        // Otherwise: row already moved client-side, stay where we are.
+      }).catch(err => {
+        alert('Network error moving worker. Reloading.');
+        window.location.reload();
+      });
+    }
+  });
+});
+</script>
+{% endblock %}

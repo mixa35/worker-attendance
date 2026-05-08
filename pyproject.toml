@@ -1,0 +1,27 @@
+[project]
+name = "worker-attendance"
+version = "0.1.0"
+description = "Telegram-bot-driven daily attendance tracker for construction teams."
+requires-python = ">=3.11"
+dependencies = [
+    "python-telegram-bot[job-queue]>=21.0",
+    "openpyxl>=3.1",
+    "fastapi>=0.110",
+    "uvicorn[standard]>=0.27",
+    "apscheduler>=3.10",
+    "pydantic-settings>=2.2",
+    "jinja2>=3.1",
+    "pyyaml>=6.0",
+    "python-multipart>=0.0.9",
+    "tzdata>=2024.1; sys_platform == 'win32'",
+]
+
+[project.scripts]
+worker-attendance = "src.__main__:main"
+
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+include = ["src*"]

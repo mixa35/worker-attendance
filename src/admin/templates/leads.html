@@ -1,0 +1,157 @@
+{% extends "base.html" %}
+{% set active = "leads" %}
+{% block title %}{{ t('leads.title') }}{% endblock %}
+{% block content %}
+<h1>{{ t('leads.title') }}</h1>
+<p class="lede">{{ t('leads.lede') }}</p>
+
+{% if pending %}
+<h2 style="margin-top: .75rem;">{{ t('pending.title') }} ({{ pending|length }})</h2>
+<p style="color: var(--text-mute); font-size: .88rem; margin-top: 0;">{{ t('pending.lede') }}</p>
+<table>
+  <thead>
+    <tr>
+      <th>{{ t('common.name') }}</th>
+      <th>{{ t('leads.col.chat_id') }}</th>
+      <th>{{ t('pending.col.first_seen') }}</th>
+      <th class="actions"></th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for p in pending %}
+    {% set display_name = ((p.first_name or '') ~ ' ' ~ (p.last_name or '')).strip() %}
+    <tr>
+      <td>
+        <strong>{{ display_name or t('common.none_dash') }}</strong>
+        {% if p.username %}
+          <span style="color: var(--text-mute); font-size: .85rem;">@{{ p.username }}</span>
+        {% endif %}
+      </td>
+      <td><code>{{ p.telegram_chat_id }}</code></td>
+      <td style="color: var(--text-mute); font-size: .85rem;">{{ p.first_seen_at }}</td>
+      <td class="actions">
+        <form class="inline" method="post" action="/leads/assign-pending"
+              style="display: inline-flex; gap: .35rem; align-items: center;">
+          <input type="hidden" name="telegram_chat_id" value="{{ p.telegram_chat_id }}">
+          <select name="team_id" required style="width: auto;" {% if not teams_without_lead %}disabled{% endif %}>
+            {% for tm in teams_without_lead %}
+            <option value="{{ tm.id }}">{{ tm.name }}</option>
+            {% endfor %}
+            {% if not teams_without_lead %}
+            <option value="">—</option>
+            {% endif %}
+          </select>
+          <button class="sm" type="submit" {% if not teams_without_lead %}disabled{% endif %}>
+            {{ t('pending.btn.assign') }}
+          </button>
+        </form>
+        <form class="inline" method="post" action="/leads/pending/{{ p.telegram_chat_id }}/dismiss"
+              onsubmit="return confirm('{{ t('pending.confirm_dismiss')|e }}');">
+          <button class="ghost sm" type="submit">{{ t('pending.btn.dismiss') }}</button>
+        </form>
+      </td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+{% if not teams_without_lead %}
+<p style="color: var(--text-mute); font-size: .85rem; margin-top: .5rem;">
+  ⚠ {{ t('pending.no_team_available') }}
+</p>
+{% endif %}
+{% endif %}
+
+{% if pending %}<h2>{{ t('leads.title') }}</h2>{% endif %}
+<table>
+  <thead>
+    <tr>
+      <th>{{ t('common.team') }}</th>
+      <th>{{ t('common.name') }}</th>
+      <th>{{ t('leads.col.chat_id') }}</th>
+      <th class="actions"></th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for l in leads %}
+    <tr id="lead-row-{{ l.id }}">
+      <td>{{ l.team_name }}</td>
+      <td>{{ l.name or t('common.none_dash') }}</td>
+      <td><code>{{ l.telegram_chat_id }}</code></td>
+      <td class="actions">
+        <button type="button" class="ghost sm" onclick="toggleEdit({{ l.id }})">{{ t('common.edit') }}</button>
+        <form class="inline" method="post" action="/leads/{{ l.id }}/delete"
+              onsubmit="return confirm('{{ t('leads.confirm_remove')|e }}');">
+          <button class="danger sm" type="submit">{{ t('common.remove') }}</button>
+        </form>
+      </td>
+    </tr>
+    <tr id="lead-edit-{{ l.id }}" style="display: none;">
+      <td colspan="4" style="background: #fafbfd;">
+        <form class="row-edit" method="post" action="/leads/{{ l.id }}/edit">
+          <div>
+            <label>{{ t('common.team') }}</label>
+            <select name="team_id" required>
+              {% for tm in teams %}
+              <option value="{{ tm.id }}" {% if tm.id == l.team_id %}selected{% endif %}>{{ tm.name }}</option>
+              {% endfor %}
+            </select>
+          </div>
+          <div>
+            <label>{{ t('leads.col.chat_id') }}</label>
+            <input type="number" name="telegram_chat_id" value="{{ l.telegram_chat_id }}" required>
+          </div>
+          <div>
+            <label>{{ t('common.name') }}</label>
+            <input type="text" name="name" value="{{ l.name or '' }}">
+          </div>
+          <div style="display: flex; gap: .5rem;">
+            <button type="submit">{{ t('common.save') }}</button>
+            <button type="button" class="muted" onclick="toggleEdit({{ l.id }})">{{ t('common.cancel') }}</button>
+          </div>
+        </form>
+      </td>
+    </tr>
+    {% endfor %}
+    {% if not leads %}
+    <tr><td colspan="4"><em>{{ t('leads.empty') }}</em></td></tr>
+    {% endif %}
+  </tbody>
+</table>
+
+{% if teams_without_lead %}
+<h2>{{ t('leads.add_title') }}</h2>
+<p style="color: var(--text-mute); font-size: .88rem; margin-top: 0;">
+  {{ t('leads.add_note') }}
+</p>
+<form class="add" method="post" action="/leads/add">
+  <div>
+    <label>{{ t('common.team') }}</label>
+    <select name="team_id" required>
+      {% for tm in teams_without_lead %}<option value="{{ tm.id }}">{{ tm.name }}</option>{% endfor %}
+    </select>
+  </div>
+  <div>
+    <label>{{ t('leads.col.chat_id') }}</label>
+    <input type="number" name="telegram_chat_id" required>
+  </div>
+  <div>
+    <label>{{ t('common.name') }} ({{ t('common.optional') }})</label>
+    <input type="text" name="name">
+  </div>
+  <div><button type="submit">{{ t('common.add') }}</button></div>
+</form>
+{% elif not teams %}
+<p><em>{{ t('workers.create_team_first') }}</em></p>
+{% endif %}
+{% endblock %}
+
+{% block scripts %}
+<script>
+function toggleEdit(id) {
+  const row = document.getElementById('lead-row-' + id);
+  const edit = document.getElementById('lead-edit-' + id);
+  if (edit.style.display === 'none') { edit.style.display = ''; row.style.opacity = .5; }
+  else { edit.style.display = 'none'; row.style.opacity = 1; }
+}
+</script>
+{% endblock %}
