@@ -58,6 +58,22 @@ After dragging a worker from Team A to Team B, the **2 active** chip on each tea
 
 ---
 
+## ⚠️ Time-sensitive
+
+### Oracle hardware migration — IP reservation
+**Deadline: 2026-05-20 02:10 UTC.** Oracle flagged the underlying host as unstable (ref `COMPUTE-10C` / `2f94749c`) and will auto-migrate the VM by then. Auto-migration is a stop/start, which **releases the ephemeral public IP `130.61.126.36`**. Bot keeps working (outbound to Telegram), but admin URL breaks until the new IP is fished out of the OCI console.
+
+**Plan**: demo is scheduled before 2026-05-20. If the client signs on after the demo, reserve the IP via OCI console (5 min) before letting Oracle migrate, so the admin URL stays stable. If demo doesn't convert, this item retires itself.
+
+**Steps when needed**:
+1. OCI Console → Compute → Instances → `worker-attendance-bot`
+2. Resources → Attached VNICs → click the VNIC
+3. IPv4 Addresses → ⋮ → Edit
+4. Change Public IP type from `Ephemeral` to `Reserved` → Create new reserved IP
+5. Save
+
+Free Tier allows 2 reserved IPs at no cost.
+
 ## 🟠 DevOps / operations
 
 ### GitHub → VM auto-deploy
