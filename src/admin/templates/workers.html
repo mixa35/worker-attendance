@@ -8,6 +8,27 @@
   <strong>{{ t('workers.tip_label') }}</strong> {{ t('workers.tip') }}
 </div>
 
+{% if teams %}
+<h2>{{ t('workers.add_title') }}</h2>
+<form class="add" method="post" action="/workers/add">
+  <div>
+    <label>{{ t('common.team') }}</label>
+    <select name="team_id" required>
+      {% for tm in teams %}<option value="{{ tm.id }}">{{ tm.name }}</option>{% endfor %}
+    </select>
+  </div>
+  <div>
+    <label>{{ t('common.name') }}</label>
+    <input type="text" name="name" required placeholder="{{ t('workers.placeholder.name') }}">
+  </div>
+  <div>
+    <label>{{ t('workers.col.national_id') }} ({{ t('common.optional') }})</label>
+    <input type="text" name="national_id" placeholder="{{ t('workers.placeholder.national_id') }}">
+  </div>
+  <div><button type="submit">{{ t('common.add') }}</button></div>
+</form>
+{% endif %}
+
 {% for team in teams %}
   {% set actives = workers_by_team[team.id] | selectattr('active') | list %}
   {% set inactives = workers_by_team[team.id] | rejectattr('active') | list %}
@@ -90,27 +111,6 @@
 {% endfor %}
 
 {% if not teams %}<p><em>{{ t('workers.create_team_first') }}</em></p>{% endif %}
-
-{% if teams %}
-<h2>{{ t('workers.add_title') }}</h2>
-<form class="add" method="post" action="/workers/add">
-  <div>
-    <label>{{ t('common.team') }}</label>
-    <select name="team_id" required>
-      {% for tm in teams %}<option value="{{ tm.id }}">{{ tm.name }}</option>{% endfor %}
-    </select>
-  </div>
-  <div>
-    <label>{{ t('common.name') }}</label>
-    <input type="text" name="name" required placeholder="{{ t('workers.placeholder.name') }}">
-  </div>
-  <div>
-    <label>{{ t('workers.col.national_id') }} ({{ t('common.optional') }})</label>
-    <input type="text" name="national_id" placeholder="{{ t('workers.placeholder.national_id') }}">
-  </div>
-  <div><button type="submit">{{ t('common.add') }}</button></div>
-</form>
-{% endif %}
 {% endblock %}
 
 {% block scripts %}
