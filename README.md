@@ -1,5 +1,10 @@
 # Worker Attendance — Telegram Bot + Admin Web
 
+[![CI](https://github.com/mixa35/worker-attendance/actions/workflows/ci.yml/badge.svg)](https://github.com/mixa35/worker-attendance/actions/workflows/ci.yml)
+[![Python 3.11+](https://img.shields.io/badge/python-3.11%2B-blue.svg)](https://www.python.org/downloads/)
+[![License: MIT](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
+[![Deploy: Docker](https://img.shields.io/badge/deploy-docker%20compose-2496ED.svg)](docker-compose.yml)
+
 Daily attendance tracking for a construction company with multiple field crews. Each morning at 08:00 (Asia/Tbilisi) every team lead receives a Telegram message with an inline form listing their workers; they tap to mark who showed up and submit. Results accumulate into a single Excel workbook with one sheet per month, color-coded per team. The owner can pull the workbook anytime via `/report`, and on the 1st of each month the previous month's workbook is auto-DM'd. Workers, teams, and leads are managed through a small bilingual (English / Georgian) admin web page.
 
 The whole system runs as a single Python container on a free Oracle Cloud VM.
@@ -83,6 +88,31 @@ python -m src          # starts bot + admin
 ```
 
 Admin opens at `http://localhost:8000` (login: `admin` / `$ADMIN_PASSWORD`).
+
+## Tests
+
+```bash
+pip install -e ".[dev]"
+python -m pytest -q          # 19 tests
+```
+
+The suite covers the two things that would corrupt the owner's report without
+anyone noticing:
+
+- **Migrations** ([`tests/test_db.py`](tests/test_db.py)) — every numbered migration applies
+  exactly once, re-running `init_db()` is a no-op, foreign keys are actually enforced
+  (without the `PRAGMA` the cascade deletes silently do nothing), the partial unique index on
+  `national_id` rejects duplicates while still allowing many NULLs, and `attendance` really is
+  keyed by `(date, worker_id)`.
+- **Workbook rendering** ([`tests/test_excel.py`](tests/test_excel.py)) — day columns match the
+  length of the month (including a leap February), present days are marked and totalled,
+  attendance from an adjacent month is not counted, `render_month_sheet` is idempotent as
+  documented, each month gets its own sheet, the `national_id` fallback to `#<row id>` works,
+  an inactive worker appears only in months where they have history, and the atomic write
+  leaves no `.tmp` file behind.
+
+CI runs the suite on Python 3.11 (what the container runs) and 3.12, and separately builds the
+deployment image so a stale `requirements.lock` fails loudly instead of at deploy time.
 
 ## Production deployment (Docker)
 
@@ -174,8 +204,16 @@ src/
     ├── 002_form_state.sql
     ├── 003_national_id.sql
     └── 004_pending_leads.sql
+
+tests/
+├── conftest.py        # tmp-dir DB + workbook fixtures
+├── test_db.py         # migrations, constraints, cascades
+└── test_excel.py      # month rendering, totals, idempotency
+
+.github/workflows/
+└── ci.yml             # pytest on 3.11 + 3.12, plus a docker build
 ```
 
 ## License
 
-MIT
+[MIT](LICENSE).

@@ -1,8 +1,11 @@
 # Roadmap
 
-The system is **demo-ready and deployed** to an Oracle Cloud VM. This file tracks what's deliberately deferred. Pick items off it in any order; nothing here blocks the current demo.
+The system is **demo-ready and deployed** to an Oracle Cloud VM. This file tracks work that is
+**deliberately deferred, not forgotten** — each item records the gap, the plan, and a rough cost,
+so the trade-off is visible rather than implicit. Pick items off it in any order; nothing here
+blocks the current demo.
 
-Last reviewed: 2026-05-08.
+Last reviewed: 2026-09-08.
 
 ---
 
@@ -60,10 +63,13 @@ After dragging a worker from Team A to Team B, the **2 active** chip on each tea
 
 ## ⚠️ Time-sensitive
 
-### Oracle hardware migration — IP reservation
-**Deadline: 2026-05-20 02:10 UTC.** Oracle flagged the underlying host as unstable (ref `COMPUTE-10C` / `2f94749c`) and will auto-migrate the VM by then. Auto-migration is a stop/start, which **releases the ephemeral public IP `130.61.126.36`**. Bot keeps working (outbound to Telegram), but admin URL breaks until the new IP is fished out of the OCI console.
+### ~~Oracle hardware migration — IP reservation~~ (retired 2026-09-08)
+**Deadline was 2026-05-20.** Oracle flagged the underlying host as unstable and auto-migrated the
+VM, which is a stop/start and releases the ephemeral public IP. The bot is unaffected either way
+(outbound only to Telegram); only the admin URL moves.
 
-**Plan**: demo is scheduled before 2026-05-20. If the client signs on after the demo, reserve the IP via OCI console (5 min) before letting Oracle migrate, so the admin URL stays stable. If demo doesn't convert, this item retires itself.
+This item retired itself as written — the deadline passed without the demo converting. If the
+project is picked back up, reserve a static IP **before** any further migration:
 
 **Steps when needed**:
 1. OCI Console → Compute → Instances → `worker-attendance-bot`
@@ -85,10 +91,12 @@ Currently every change is `scp` + `docker compose up -d --build` from the laptop
 
 I'd suggest pull-based for simplicity (~10 min). Push-based when iteration speeds up.
 
-### Pin Python version + add CI lint/typecheck
-`requirements.lock` is in place but no CI. A GitHub Actions workflow could run `ruff check` + `mypy` on every push as a quality gate.
+### Add lint + typecheck to CI
+`.github/workflows/ci.yml` now runs the test suite on Python 3.11 and 3.12 and builds the
+deployment image on every push and pull request. Static analysis is still missing.
 
-**Plan**: `.github/workflows/ci.yml`, ruff + mypy configs in `pyproject.toml`. ~30 min one-time.
+**Plan**: add `ruff check` and `mypy` steps plus their config in `pyproject.toml`. ~30 min one-time.
+Expect a first-run backlog of findings in `admin/app.py` and `bot/handlers.py`.
 
 ### Container health probe is liveness-only
 `/healthz` checks SQLite reachability but doesn't verify the bot is actually polling Telegram. If the polling task silently dies but uvicorn stays up, healthcheck still returns 200.
@@ -126,3 +134,6 @@ README has an ASCII diagram. Adding 1-2 screenshots (Telegram form + admin dashb
 - SQLite WAL mode, atomic Excel writes, healthcheck endpoint, Docker `HEALTHCHECK`, log rotation, nightly local backups.
 - Pinned dependency lockfile, drag handle restricted to ⋮⋮ column, favicon, self-hosted SortableJS.
 - GitHub repo published with description, topics, and README.
+- Test suite (19 tests) covering the migration runner and the monthly workbook rendering,
+  plus GitHub Actions CI running them on Python 3.11 + 3.12 and building the Docker image.
+- MIT license.
