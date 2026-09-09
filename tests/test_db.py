@@ -6,7 +6,7 @@ import sqlite3
 
 import pytest
 
-from src import db as db_module
+from worker_attendance import db as db_module
 
 
 def _tables(conn: sqlite3.Connection) -> set[str]:

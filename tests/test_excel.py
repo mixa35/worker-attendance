@@ -8,8 +8,8 @@ from pathlib import Path
 import pytest
 from openpyxl import load_workbook
 
-from src import excel as excel_module
-from src.excel import COL_ID, COL_TEAM, COL_WORKER, FIRST_DAY_COL, PRESENT_MARK
+from worker_attendance import excel as excel_module
+from worker_attendance.excel import COL_ID, COL_TEAM, COL_WORKER, FIRST_DAY_COL, PRESENT_MARK
 
 
 def _load(path: Path):

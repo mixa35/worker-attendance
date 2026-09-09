@@ -27,7 +27,7 @@ Admin uses HTTP Basic Auth. A malicious page in another tab could forge POSTs to
 
 **Plan**: replace Basic Auth with a session cookie + login form, embed CSRF tokens in every form. ~1.5h.
 
-**Files affected**: `src/admin/app.py` (auth dependency, `/login`, `/logout`), all templates (token in hidden field), `i18n.py` (login strings).
+**Files affected**: `worker_attendance/admin/app.py` (auth dependency, `/login`, `/logout`), all templates (token in hidden field), `i18n.py` (login strings).
 
 ### Off-VM backups (Backblaze B2 or similar)
 Nightly local backups already run at 03:15 to `~/backups/<date>/` (30-day rolling). Survives container/disk corruption but **not** a VM termination event.

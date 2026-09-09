@@ -24,7 +24,7 @@ The whole system runs as a single Python container on a free Oracle Cloud VM.
 | Storage | SQLite (single file, WAL mode) + persistent `attendance.xlsx` re-rendered on every submission |
 | Excel | [openpyxl](https://openpyxl.readthedocs.io/) — one sheet per month, team-colored rows, atomic write via `os.replace` |
 | Auth | HTTP Basic Auth on the admin (one user, env-configured password) |
-| i18n | Per-language dicts in [`src/admin/i18n.py`](src/admin/i18n.py); language picked via cookie for the web, env var for the bot |
+| i18n | Per-language dicts in [`worker_attendance/admin/i18n.py`](worker_attendance/admin/i18n.py); language picked via cookie for the web, env var for the bot |
 | Process | One container running bot polling, scheduler, and the FastAPI admin in the same asyncio event loop |
 | Deploy | Docker Compose on an Oracle Cloud Always Free VM (Ubuntu 22.04, x86-64) |
 
@@ -66,7 +66,7 @@ pending_leads(telegram_chat_id PK, first_name, last_name, username, …)
 schema_version(version, applied_at)
 ```
 
-Migrations live as numbered SQL files in [`src/migrations/`](src/migrations/) and apply automatically on startup.
+Migrations live as numbered SQL files in [`worker_attendance/migrations/`](worker_attendance/migrations/) and apply automatically on startup.
 
 ## Local development
 
@@ -83,8 +83,8 @@ cp .env.example .env
 cp data/seed.example.yaml data/seed.yaml
 # Edit teams, workers, lead chat IDs
 
-python -m src.seed     # one-time DB seed
-python -m src          # starts bot + admin
+python -m worker_attendance.seed     # one-time DB seed
+python -m worker_attendance   # starts bot + admin
 ```
 
 Admin opens at `http://localhost:8000` (login: `admin` / `$ADMIN_PASSWORD`).
@@ -119,7 +119,7 @@ deployment image so a stale `requirements.lock` fails loudly instead of at deplo
 ```bash
 cp .env.example .env  # fill in
 cp data/seed.example.yaml data/seed.yaml  # fill in (or skip and use admin UI)
-docker compose run --rm app python -m src.seed   # one-time
+docker compose run --rm app python -m worker_attendance.seed   # one-time
 docker compose up -d --build
 ```
 
@@ -182,7 +182,7 @@ Language switch in the sidebar footer (cookie-based, applies instantly).
 ## Project layout
 
 ```
-src/
+worker_attendance/
 ├── __main__.py        # entrypoint: starts bot + scheduler + admin in one event loop
 ├── config.py          # env loading via pydantic-settings
 ├── db.py              # SQLite connection + migrations runner

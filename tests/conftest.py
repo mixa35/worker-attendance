@@ -12,8 +12,8 @@ from pathlib import Path
 
 import pytest
 
-from src import db as db_module
-from src import excel as excel_module
+from worker_attendance import db as db_module
+from worker_attendance import excel as excel_module
 
 
 @pytest.fixture
