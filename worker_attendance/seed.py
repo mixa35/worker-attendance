@@ -1,4 +1,4 @@
-"""Loads data/seed.yaml into the DB. Run: python -m src.seed [--force]."""
+"""Loads data/seed.yaml into the DB. Run: python -m worker_attendance.seed [--force]."""
 
 from __future__ import annotations
 

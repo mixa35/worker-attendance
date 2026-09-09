@@ -7,11 +7,11 @@ Python 3.11+ · `python-telegram-bot` · `openpyxl` · `FastAPI` · `APScheduler
 
 ## Run
 - Copy `.env.example` → `.env` and fill `BOT_TOKEN`, `OWNER_CHAT_ID`, `ADMIN_PASSWORD`.
-- First run: `python -m src.seed` to load `data/seed.yaml`.
-- `docker compose up -d` (or `python -m src` for local dev).
+- First run: `python -m worker_attendance.seed` to load `data/seed.yaml`.
+- `docker compose up -d` (or `python -m worker_attendance` for local dev).
 
 ## Key files
-[src/__main__.py](src/__main__.py) · [src/db.py](src/db.py) · [src/excel.py](src/excel.py) · [src/bot/handlers.py](src/bot/handlers.py) · [src/admin/app.py](src/admin/app.py)
+[worker_attendance/__main__.py](worker_attendance/__main__.py) · [worker_attendance/db.py](worker_attendance/db.py) · [worker_attendance/excel.py](worker_attendance/excel.py) · [worker_attendance/bot/handlers.py](worker_attendance/bot/handlers.py) · [worker_attendance/admin/app.py](worker_attendance/admin/app.py)
 
 ## Known limitation
 Workers belong to one team at a time (no per-day team history). Moving a worker mid-month re-attributes their entire month's attendance to the new team in the Excel report. Plan transfers at month boundaries. Deeper fix (worker_team_history table) deferred.

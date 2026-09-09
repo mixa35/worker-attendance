@@ -8,7 +8,7 @@ RUN pip install --no-cache-dir -r requirements.lock
 
 # Then install the local package itself (skip its deps — they're already in)
 COPY pyproject.toml ./
-COPY src/ ./src/
+COPY worker_attendance/ ./worker_attendance/
 RUN pip install --no-cache-dir --no-deps -e .
 
 ENV DATA_DIR=/data
@@ -16,4 +16,4 @@ VOLUME ["/data"]
 
 EXPOSE 8000
 
-CMD ["python", "-m", "src"]
+CMD ["python", "-m", "worker_attendance"]
